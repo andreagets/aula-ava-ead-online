@@ -1,0 +1,2650 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infográfico Interativo — AVA na EaD On-line</title>
+  
+  <!-- Basecoat CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  
+  <!-- System Shell CSS & JS -->
+  <style>
+/* Skip artifact shell — fixed styles served beside every artifact.
+   Complements basecoat; artifacts override --accent for their own identity. */
+:root {
+  color-scheme: light dark;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --accent-text: color-mix(in srgb, var(--accent) 72%, #000);
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --text: #14171f;
+  --text-muted: #5b6472;
+  --border: rgba(20, 23, 31, 0.10);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 23, 31, 0.08);
+  --space: 16px;
+}
+/* Theme resolution. Without data-theme the viewer's system preference decides,
+   as it always did. With it, the artifact's own choice wins in BOTH directions:
+   a page that hardcodes one palette must not be handed the opposite set of
+   tokens by the machine it happens to be opened on. The dark values appear
+   twice because a media query cannot be folded into a selector list.
+   The attribute sits inside :where() so these blocks keep the specificity of a
+   bare :root — the page's own <style> is linked after this file and must go on
+   overriding any token it wants, exactly as it could before. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+    --bg: #101318;
+    --surface: #181c23;
+    --text: #eef1f6;
+    --text-muted: #9aa4b2;
+    --border: rgba(238, 241, 246, 0.12);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+:root:where([data-theme="dark"]) {
+  color-scheme: dark;
+  --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+  --bg: #101318;
+  --surface: #181c23;
+  --text: #eef1f6;
+  --text-muted: #9aa4b2;
+  --border: rgba(238, 241, 246, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+:root:where([data-theme="light"]) { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+
+.shell-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.shell-section { padding: calc(var(--space) * 2) 0; }
+.shell-grid { display: grid; gap: var(--space); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.shell-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: var(--space); }
+.shell-footer { padding: 24px 0 40px; color: var(--text-muted); font-size: 13px; }
+
+.shell-hero { padding: calc(var(--space) * 3) 0 calc(var(--space) * 2); }
+.shell-hero h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.shell-hero p { color: var(--text-muted); max-width: 60ch; margin: 0; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space);
+}
+
+.kpi { display: flex; flex-direction: column; gap: 4px; }
+.kpi .kpi-value { font-size: 28px; font-weight: 650; line-height: 1.1; }
+.kpi .kpi-label { font-size: 13px; color: var(--text-muted); }
+.kpi .kpi-delta { font-size: 12.5px; font-weight: 600; }
+.kpi .kpi-delta.up { color: #0a8f3c; }
+.kpi .kpi-delta.down { color: #cf3131; }
+
+table.shell-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.shell-table th {
+  text-align: left; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+table.shell-table th, table.shell-table td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); }
+table.shell-table td.num, table.shell-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+.chart-box { width: 100%; min-height: 220px; }
+.chart-box svg { width: 100%; height: auto; display: block; }
+
+.muted { color: var(--text-muted); }
+.accent { color: var(--accent-text); }
+.shell-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shell-fade { animation: shell-fade 400ms ease both; }
+  @keyframes shell-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+</style>
+  
+
+  <style>
+    :root {
+      --accent: #0f766e; /* Azul-petróleo / Verde-água institucional */
+      --accent-soft: #f0fdfa;
+      --accent-subtle: #ccfbf1;
+      --accent-border: #99f6e4;
+      --header-bg: linear-gradient(135deg, #065f46 0%, #047857 52%, #0f766e 100%);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      min-width: 320px;
+      font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1.05rem);
+      line-height: 1.6;
+    }
+
+    /* HEADER FLUIDO E ADAPTATIVO — PALETA FISIOTERAPIA */
+    .edu-header {
+      background: var(--header-bg);
+      border-bottom: 2px solid #064e3b;
+      box-shadow: 0 4px 14px rgba(6, 95, 70, 0.25);
+      position: relative;
+      z-index: 50;
+      width: 100%;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.6rem, 1.2vw, 0.9rem);
+      padding: clamp(0.9rem, 2vw, 1.4rem) clamp(0.75rem, 3vw, 1.5rem);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 820px) {
+      .header-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.25rem;
+      }
+    }
+
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-width: 780px;
+    }
+
+    .header-titles h1 {
+      font-size: clamp(1.15rem, 1rem + 1vw, 1.65rem);
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+      line-height: 1.25;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+      overflow-wrap: break-word;
+    }
+
+    .header-titles .subtitle {
+      font-size: clamp(0.8rem, 0.75rem + 0.3vw, 0.95rem);
+      color: #d1fae5;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .badge-copyright {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      font-weight: 600;
+      font-size: clamp(0.7rem, 0.65rem + 0.2vw, 0.8rem);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      backdrop-filter: blur(4px);
+      min-height: 36px;
+      line-height: 1.2;
+    }
+
+    .badge-author {
+      background: #ffffff;
+      color: #065f46;
+      font-weight: 700;
+      font-size: clamp(0.7rem, 0.65rem + 0.2vw, 0.8rem);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      line-height: 1.2;
+    }
+
+    .hamburger-icon .line-top,
+    .hamburger-icon .line-mid,
+    .hamburger-icon .line-bot {
+      transition: transform 0.25s ease, opacity 0.2s ease;
+      transform-origin: center;
+    }
+
+    /* Animação hambúrguer -> X quando aberto (exclusivo da barra de menu) */
+    .mobile-bar-toggle-btn.is-active .line-top {
+      transform: translateY(6px) rotate(45deg);
+    }
+    .mobile-bar-toggle-btn.is-active .line-mid {
+      opacity: 0;
+    }
+    .mobile-bar-toggle-btn.is-active .line-bot {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* BARRA DE NAVEGAÇÃO DE ABAS — COMPLETA E RESPONSIVA */
+    .tabs-wrapper {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* BARRA FIXA MÓVEL (STICKY BAR EM TELAS PEQUENAS E MÉDIAS) */
+    .mobile-nav-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.45rem 0.85rem;
+      min-height: 50px;
+      gap: 0.75rem;
+    }
+
+    .mobile-current-tab {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      line-height: 1.25;
+    }
+
+    .mobile-current-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--accent-text);
+    }
+
+    .mobile-current-title {
+      font-size: clamp(0.85rem, 0.8rem + 0.3vw, 0.95rem);
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .mobile-bar-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0.4rem 0.85rem;
+      background: var(--accent-soft);
+      border: 1.5px solid var(--accent-border);
+      border-radius: 8px;
+      color: var(--accent-text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .mobile-bar-toggle-btn:hover {
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border-color: var(--accent);
+    }
+
+    .mobile-bar-toggle-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* DRAWER / MENU RETRÁTIL LATERAL */
+    .mobile-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.65);
+      z-index: 998;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      backdrop-filter: blur(2px);
+    }
+
+    .mobile-drawer-backdrop.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(340px, 86vw);
+      height: 100vh;
+      height: 100dvh;
+      background-color: var(--surface);
+      border-left: 2px solid var(--accent-border);
+      box-shadow: -8px 0 28px rgba(0, 0, 0, 0.28);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      visibility: hidden;
+      overflow: hidden;
+    }
+
+    .mobile-drawer.is-open {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .drawer-header {
+      background: var(--header-bg);
+      color: #ffffff;
+      padding: 1rem 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      border-bottom: 2px solid #064e3b;
+      flex-shrink: 0;
+    }
+
+    .drawer-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+    }
+
+    .drawer-close-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: all 0.2s;
+    }
+
+    .drawer-close-btn:hover {
+      background: #ffffff;
+      color: #065f46;
+    }
+
+    .drawer-close-btn:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 2px;
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .drawer-tab-btn {
+      width: 100%;
+      min-height: 48px;
+      padding: 0.75rem 0.95rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-left: 3px solid transparent;
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: all 0.15s ease;
+    }
+
+    .drawer-tab-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border-color: var(--accent-border);
+    }
+
+    .drawer-tab-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border-left-color: var(--accent);
+      border-color: var(--accent-border);
+      font-weight: 700;
+    }
+
+    .drawer-tab-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .drawer-tab-icon {
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .drawer-footer {
+      padding: 0.85rem 1rem;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    body.menu-open {
+      overflow: hidden !important;
+    }
+
+    /* REGRAS DE BREAKPOINT PARA MENU RETRÁTIL vs BARRA DESKTOP */
+    @media (max-width: 1023px) {
+      .mobile-nav-bar {
+        display: flex;
+      }
+      .desktop-nav-tabs {
+        display: none !important;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .mobile-nav-bar {
+        display: none !important;
+      }
+      .desktop-nav-tabs {
+        display: flex !important;
+      }
+      .mobile-drawer, .mobile-drawer-backdrop {
+        display: none !important;
+      }
+    }
+
+    .nav-tabs-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-tabs {
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-border) transparent;
+      padding: 0.4rem 0.5rem 0;
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .nav-tabs::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .nav-tabs::-webkit-scrollbar-thumb {
+      background: var(--accent-border);
+      border-radius: 4px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.65rem 0.9rem;
+      font-size: clamp(0.8rem, 0.75rem + 0.2vw, 0.9rem);
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      border-radius: var(--radius) var(--radius) 0 0;
+      text-decoration: none;
+      flex-shrink: 0;
+      scroll-snap-align: center;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    .tab-btn:hover {
+      color: var(--accent-text);
+      background: var(--accent-soft);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-text);
+      border-bottom-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    /* PANE DE CONTEÚDO */
+    .tab-pane {
+      display: none;
+      padding-top: clamp(1rem, 2vw, 1.75rem);
+      animation: tabFadeIn 0.25s ease forwards;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TOOLTIP RESPONSIVO E TÁTIL */
+    .term-tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 2px dotted var(--accent);
+      color: var(--accent-text);
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      padding: 0.05rem 0.15rem;
+      border-radius: 2px;
+    }
+
+    .term-tooltip:hover, .term-tooltip:focus-visible, .term-tooltip.tooltip-active {
+      background: var(--accent-soft);
+    }
+
+    .term-tooltip .tooltip-box {
+      visibility: hidden;
+      opacity: 0;
+      width: min(280px, calc(100vw - 2rem));
+      background-color: #0f172a;
+      color: #f8fafc;
+      text-align: left;
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      position: absolute;
+      z-index: 120;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      transition: opacity 0.2s, visibility 0.2s;
+      pointer-events: none;
+      font-weight: 400;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .term-tooltip .tooltip-box::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: #0f172a transparent transparent transparent;
+    }
+
+    .term-tooltip:hover .tooltip-box,
+    .term-tooltip:focus .tooltip-box,
+    .term-tooltip.tooltip-active .tooltip-box {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* STEPPER DO PERCURSO DO ESTUDANTE — FLUIDO (VERTICAL NO MOBILE / HORIZONTAL NO DESKTOP) */
+    .stepper-nav {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      margin: 1.5rem 0;
+      padding: 0;
+      list-style: none;
+      gap: 0.75rem;
+    }
+
+    .stepper-nav::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      left: 23px;
+      width: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .stepper-step {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: left;
+      cursor: pointer;
+      min-height: 48px;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius);
+      transition: background 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    .stepper-step:hover {
+      background: var(--accent-soft);
+    }
+
+    .stepper-step:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .step-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .stepper-step.active .step-circle {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-contrast);
+      box-shadow: 0 0 0 4px var(--accent-subtle);
+    }
+
+    .stepper-step.completed .step-circle {
+      background: var(--accent-subtle);
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    .step-label {
+      font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.92rem);
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .stepper-step.active .step-label {
+      color: var(--accent-text);
+      font-weight: 700;
+    }
+
+    /* Stepper em telas médias e grandes (horizontal) */
+    @media (min-width: 768px) {
+      .stepper-nav {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 0.25rem;
+      }
+
+      .stepper-nav::before {
+        top: 24px;
+        bottom: auto;
+        left: 30px;
+        right: 30px;
+        height: 3px;
+        width: auto;
+      }
+
+      .stepper-step {
+        flex-direction: column;
+        text-align: center;
+        flex: 1;
+        gap: 0.4rem;
+        padding: 0.5rem 0.25rem;
+      }
+
+      .step-circle {
+        margin: 0 auto;
+        width: 48px;
+        height: 48px;
+      }
+
+      .step-label {
+        max-width: 130px;
+        margin: 0 auto;
+      }
+    }
+
+    .step-detail-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 2vw, 1.65rem);
+      margin-top: 1.25rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    @media (min-width: 640px) {
+      .step-detail-card {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1.25rem;
+      }
+    }
+
+    /* FILTROS DE FERRAMENTAS */
+    .filter-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: clamp(0.78rem, 0.74rem + 0.2vw, 0.88rem);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-text);
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-contrast);
+    }
+
+    .filter-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* LINHA DO TEMPO RESPONSIVA (VERTICAL ADAPTÁVEL) */
+    .timeline {
+      position: relative;
+      margin: 1.5rem 0;
+      padding-left: clamp(1.5rem, 3.5vw, 2.25rem);
+      border-left: 3px solid var(--accent-border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: clamp(1.25rem, 2vw, 1.75rem);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: calc(-1 * clamp(1.5rem, 3.5vw, 2.25rem) - 10px);
+      top: 0.4rem;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid var(--accent);
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .timeline-item.active .timeline-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-subtle);
+    }
+
+    .timeline-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(0.9rem, 2vw, 1.25rem);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .timeline-item:hover .timeline-card {
+      border-color: var(--accent);
+    }
+
+    .timeline-item.active .timeline-card {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* ACCORDIONS RESPONSIVOS COM ALVOS TOCÁVEIS */
+    .accordion-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .accordion-header {
+      width: 100%;
+      min-height: 48px;
+      padding: clamp(0.75rem, 1.5vw, 1rem) clamp(0.9rem, 2vw, 1.25rem);
+      background: transparent;
+      border: none;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: clamp(0.88rem, 0.82rem + 0.25vw, 0.98rem);
+      font-weight: 600;
+      color: var(--text);
+      transition: background 0.15s;
+      touch-action: manipulation;
+    }
+
+    .accordion-header:hover {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+
+    .accordion-header:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .accordion-icon {
+      font-size: 1.15rem;
+      transition: transform 0.25s ease;
+      color: var(--accent-text);
+      flex-shrink: 0;
+    }
+
+    .accordion-item.open .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-body {
+      display: none;
+      padding: clamp(0.75rem, 1.5vw, 1rem) clamp(0.9rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.35rem);
+      border-top: 1px solid var(--border);
+      font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.92rem);
+      line-height: 1.6;
+      color: var(--text);
+      background: #fafafa;
+    }
+
+    .accordion-item.open .accordion-body {
+      display: block;
+    }
+
+    /* QUIZ INTERATIVO COM ALVOS TOCÁVEIS >= 44PX */
+    .quiz-question-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 2vw, 1.5rem);
+      margin-bottom: 1.25rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .quiz-option-btn {
+      width: 100%;
+      min-height: 48px;
+      text-align: left;
+      padding: clamp(0.7rem, 1.5vw, 0.85rem) clamp(0.85rem, 2vw, 1rem);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.9rem);
+      line-height: 1.45;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      touch-action: manipulation;
+      overflow-wrap: break-word;
+    }
+
+    .quiz-option-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .quiz-option-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .quiz-option-btn.correct {
+      background: #ecfdf5 !important;
+      border-color: #10b981 !important;
+      color: #065f46 !important;
+      font-weight: 600;
+    }
+
+    .quiz-option-btn.incorrect {
+      background: #fef2f2 !important;
+      border-color: #ef4444 !important;
+      color: #991b1b !important;
+    }
+
+    .quiz-feedback {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius);
+      font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem);
+      line-height: 1.5;
+      display: none;
+    }
+
+    .quiz-feedback.success {
+      background: #ecfdf5;
+      border-left: 4px solid #10b981;
+      color: #065f46;
+      display: block;
+    }
+
+    .quiz-feedback.error {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+      display: block;
+    }
+
+    /* REFERÊNCIAS BIBLIOGRÁFICAS FLUIDAS */
+    .reference-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: clamp(0.75rem, 1.5vw, 1rem) clamp(0.85rem, 2vw, 1.15rem);
+      margin-bottom: 0.75rem;
+      font-size: clamp(0.8rem, 0.76rem + 0.2vw, 0.88rem);
+      line-height: 1.6;
+      overflow-wrap: break-word;
+    }
+
+    .reference-entry a {
+      color: var(--accent-text);
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      text-decoration: underline;
+    }
+
+    /* GRADES E CARDS ADAPTATIVOS */
+    .cards-responsive-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 600px) {
+      .cards-responsive-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 992px) {
+      .cards-responsive-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .cards-responsive-grid {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+    }
+
+    /* PROJEÇÃO E TELAS AMPLAS */
+    @media (min-width: 1440px) {
+      body {
+        font-size: 1.05rem;
+      }
+    }
+
+    /* BOTÕES GERAIS COM TAMANHO TOCÁVEL MÍNIMO */
+    .btn-touch {
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.9rem);
+      border-radius: var(--radius);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    /* IMPRESSÃO LIMPA E RESPONSIVA */
+    @media print {
+      .edu-header, .tabs-wrapper, .filter-btn-group, .btn, button {
+        display: none !important;
+      }
+      .tab-pane {
+        display: block !important;
+        page-break-after: always;
+      }
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 10pt;
+      }
+      .panel, .step-detail-card, .timeline-card, .quiz-question-box, .reference-entry {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED ACCESSIBLE HEADER -->
+  <header class="edu-header">
+    <div class="header-content">
+      <div class="header-titles">
+        <h1>Ambientes Virtuais de Aprendizagem na EaD On-line</h1>
+        <div class="subtitle">Módulo EaD em Saúde — Fisioterapia · UFC</div>
+      </div>
+      <div class="header-badges">
+        <span class="badge-author" title="Docente responsável pelo conteúdo">
+          Autoria: Profa. Dra. Andréa Soares Rocha da Silva
+        </span>
+        <span class="badge-copyright" title="© 2026 Profa. Dra. Andréa Soares Rocha da Silva · Todos os direitos reservados">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M14.83 14.83a4 4 0 1 1 0-5.66"></path>
+          </svg>
+          © 2026 · Todos os direitos reservados
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS & MOBILE BAR -->
+  <nav class="tabs-wrapper" aria-label="Navegação do Infográfico">
+    <div class="nav-tabs-container">
+      <!-- Barra fixa para mobile / tablet (< 1024px) -->
+      <div class="mobile-nav-bar" id="mobile-nav-bar">
+        <div class="mobile-current-tab">
+          <span class="mobile-current-label">Aba ativa:</span>
+          <span class="mobile-current-title" id="mobile-current-title">1. Conceito</span>
+        </div>
+        <button class="mobile-bar-toggle-btn" id="sticky-menu-btn" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <svg class="hamburger-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line class="line-top" x1="3" y1="6" x2="21" y2="6"></line>
+            <line class="line-mid" x1="3" y1="12" x2="21" y2="12"></line>
+            <line class="line-bot" x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span class="menu-btn-text">Menu</span>
+        </button>
+      </div>
+
+      <!-- Barra horizontal para desktop (>= 1024px) com 10 abas -->
+      <div class="nav-tabs desktop-nav-tabs" role="tablist" id="main-nav-tabs">
+        <button class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-conceito" id="btn-tab-conceito">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          1. Conceito
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-importancia" id="btn-tab-importancia">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          2. Importância
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-funcionamento" id="btn-tab-funcionamento">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          3. Como funciona
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-ferramentas" id="btn-tab-ferramentas">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+          4. Ferramentas
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-evolucao" id="btn-tab-evolucao">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          5. Evolução
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-avaliacao" id="btn-tab-avaliacao">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+          6. Avaliação
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-plataformas" id="btn-tab-plataformas">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+          7. Plataformas
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-acessibilidade" id="btn-tab-acessibilidade">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
+          8. Acessibilidade
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-quiz" id="btn-tab-quiz">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+          9. Quiz Interativo
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false" data-tab="tab-referencias" id="btn-tab-referencias">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          10. Referências
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- PAINEL / MENU RETRÁTIL LATERAL (DRAWER ACESSÍVEL) -->
+  <div class="mobile-drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Menu de Navegação das 10 Abas" aria-hidden="true">
+    <div class="drawer-header">
+      <h3 class="drawer-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+          <path d="M6 6h10"></path>
+          <path d="M6 10h10"></path>
+        </svg>
+        Navegação do AVA
+      </h3>
+      <button class="drawer-close-btn" id="drawer-close-btn" aria-label="Fechar menu de navegação">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-body" role="tablist" id="drawer-tabs-list">
+      <button class="drawer-tab-btn active" role="tab" aria-selected="true" data-tab="tab-conceito">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+        <span>1. Conceito</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-importancia">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></span>
+        <span>2. Importância</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-funcionamento">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+        <span>3. Como funciona</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-ferramentas">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
+        <span>4. Ferramentas</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-evolucao">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        <span>5. Evolução</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-avaliacao">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></span>
+        <span>6. Avaliação</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-plataformas">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span>
+        <span>7. Plataformas</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-acessibilidade">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg></span>
+        <span>8. Acessibilidade</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-quiz">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span>
+        <span>9. Quiz Interativo</span>
+      </button>
+      <button class="drawer-tab-btn" role="tab" aria-selected="false" data-tab="tab-referencias">
+        <span class="drawer-tab-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg></span>
+        <span>10. Referências</span>
+      </button>
+    </div>
+
+    <div class="drawer-footer">
+      <div style="font-weight: 700; color: var(--accent-text); margin-bottom: 0.2rem;">Autoria: Profa. Dra. Andréa Soares Rocha da Silva</div>
+      <div>© 2026 · Todos os direitos reservados</div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER CONTAINER FLUIDO -->
+  <main class="shell-container" style="max-width: 1200px; margin: 0 auto; padding: clamp(0.75rem, 2vw, 1.5rem) clamp(0.75rem, 3vw, 1.5rem);">
+
+    <!-- ==================== 1. CONCEITO ==================== -->
+    <section id="tab-conceito" class="tab-pane active" role="tabpanel" aria-labelledby="btn-tab-conceito">
+      <div class="panel" style="margin-bottom: clamp(1rem, 2vw, 1.5rem); border-top: 4px solid var(--accent); padding: clamp(1.1rem, 2.5vw, 1.75rem);">
+        <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text); margin-bottom: 0.75rem;">Definição Fundamental</span>
+        <blockquote style="margin: 0.5rem 0 1.25rem; font-size: clamp(1rem, 0.95rem + 0.35vw, 1.2rem); font-weight: 500; line-height: 1.6; color: var(--text);">
+          "Ambientes Virtuais de Aprendizagem (AVA) são sistemas on-line que reúnem ferramentas, conteúdos e espaços de interação para mediar o processo de ensino-aprendizagem a distância."
+        </blockquote>
+        <div style="font-size: 0.85rem; color: var(--text-muted); text-align: right; font-style: italic;">
+          (Messa, 2010; Meyer, 2022)
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom: clamp(1rem, 2vw, 1.5rem); padding: clamp(1rem, 2vw, 1.5rem);">
+        <h3 style="font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); margin-top: 0; margin-bottom: 0.75rem; color: var(--accent-text);">
+          Termos-Chave e Vocabulário Essencial (toque ou passe o cursor para ler a definição)
+        </h3>
+        <p style="font-size: clamp(0.88rem, 0.84rem + 0.2vw, 0.95rem); line-height: 1.75; margin-bottom: 0;">
+          Para atuar na área de saúde e fisioterapia no contexto contemporâneo, é imperativo compreender como a 
+          <span class="term-tooltip" tabindex="0" role="button" aria-label="Definição de EaD on-line">EaD on-line
+            <span class="tooltip-box">Modalidade educacional mediada pela internet e tecnologias digitais, permitindo a conexão entre estudantes, docentes e conteúdos mesmo em localidades distintas.</span>
+          </span>
+          se consolida por meio de uma sólida 
+          <span class="term-tooltip" tabindex="0" role="button" aria-label="Definição de mediação pedagógica">mediação pedagógica
+            <span class="tooltip-box">Ação docente deliberada que acolhe, desafia, orienta e acompanha o estudante, transformando a informação em conhecimento efetivo.</span>
+          </span>.
+          Essa prática estimula a 
+          <span class="term-tooltip" tabindex="0" role="button" aria-label="Definição de aprendizagem significativa">aprendizagem significativa
+            <span class="tooltip-box">Processo no qual o novo conhecimento ancora-se e expande conhecimentos prévios do estudante de maneira ativa e contextualizada à sua realidade profissional.</span>
+          </span>,
+          articulando dinâmicas de tempo 
+          <span class="term-tooltip" tabindex="0" role="button" aria-label="Definição de síncrono e assíncrono">síncrono e assíncrono
+            <span class="tooltip-box">Síncrono ocorre em tempo real (webconferência, chat ao vivo); assíncrono ocorre em momentos distintos (fóruns de debate, videoaulas gravadas, tarefas).</span>
+          </span>
+          para enriquecer a autonomia discente.
+        </p>
+      </div>
+
+      <div class="panel" style="padding: clamp(1rem, 2vw, 1.5rem);">
+        <h3 style="font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); margin-top: 0; margin-bottom: 1rem; color: var(--text);">
+          Características Centrais dos AVAs (Meyer, 2022)
+        </h3>
+        <div class="cards-responsive-grid">
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+            <div style="font-weight: 700; color: var(--accent-text); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Centralização
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Reunião ordenada de programas, videoaulas, textos científicos, diretrizes e roteiros clínicos em um único ponto digital.</p>
+          </div>
+
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+            <div style="font-weight: 700; color: var(--accent-text); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Interação
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Canais de diálogo contínuo entre professor-aluno, tutor-aluno e aluno-aluno em discussões de casos de saúde.</p>
+          </div>
+
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+            <div style="font-weight: 700; color: var(--accent-text); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Acompanhamento
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Rastreabilidade detalhada dos acessos, tempos de estudo, engajamento e devolução de feedbacks pontuais.</p>
+          </div>
+
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+            <div style="font-weight: 700; color: var(--accent-text); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              Flexibilidade
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Possibilidade de conciliar práticas hospitalares, estágios e estudos teóricos em horários adaptados à rotina.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. IMPORTÂNCIA ==================== -->
+    <section id="tab-importancia" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-importancia">
+      <div style="margin-bottom: clamp(1rem, 2vw, 1.5rem);">
+        <h2 style="font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem); margin-top: 0; color: var(--text);">Por que os AVAs importam na Educação Contemporânea?</h2>
+        <p style="color: var(--text-muted); font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); margin-top: 0.25rem;">
+          Fundamentos teóricos com base nas investigações de Ribeiro et al. e Messa (Ribeiro et al., 2007; Messa, 2010).
+        </p>
+      </div>
+
+      <div class="cards-responsive-grid" style="margin-bottom: 1.5rem;">
+        <div class="panel" style="padding: clamp(1rem, 2vw, 1.25rem); border-top: 3px solid var(--accent);">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--accent-subtle); color: var(--accent-text); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <h4 style="margin: 0; font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1rem); color: var(--text);">Ampliam o acesso à educação</h4>
+          </div>
+          <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); color: var(--text-muted); line-height: 1.55; margin: 0;">
+            Democratizam o ingresso ao conhecimento técnico-científico, interiorizando a formação universitária e alcançando profissionais em diversas regiões do Ceará e do Brasil.
+          </p>
+        </div>
+
+        <div class="panel" style="padding: clamp(1rem, 2vw, 1.25rem); border-top: 3px solid var(--accent);">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--accent-subtle); color: var(--accent-text); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <h4 style="margin: 0; font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1rem); color: var(--text);">Rompem barreiras de espaço e tempo</h4>
+          </div>
+          <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); color: var(--text-muted); line-height: 1.55; margin: 0;">
+            Superam limitações geográficas tradicionais. O aluno de Fisioterapia pode consultar simulações e diretrizes de reabilitação a qualquer instante e em qualquer dispositivo.
+          </p>
+        </div>
+
+        <div class="panel" style="padding: clamp(1rem, 2vw, 1.25rem); border-top: 3px solid var(--accent);">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--accent-subtle); color: var(--accent-text); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3-3m0 0l-3 3m3-3v8"/></svg>
+            </div>
+            <h4 style="margin: 0; font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1rem); color: var(--text);">Promovem autonomia e ritmo próprio</h4>
+          </div>
+          <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); color: var(--text-muted); line-height: 1.55; margin: 0;">
+            O discente assume o protagonismo: gerencia sua rotina, revisa conteúdos complexos de anatomia ou cinesiologia quantas vezes forem necessárias e define estratégias individuais.
+          </p>
+        </div>
+
+        <div class="panel" style="padding: clamp(1rem, 2vw, 1.25rem); border-top: 3px solid var(--accent);">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div style="background: var(--accent-subtle); color: var(--accent-text); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <h4 style="margin: 0; font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1rem); color: var(--text);">Viabilizam novos domínios da EaD</h4>
+          </div>
+          <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); color: var(--text-muted); line-height: 1.55; margin: 0;">
+            Permitem cenários interativos complexos, metodologias ativas baseadas em casos reais e simulações clínicas que antes dependiam exclusivamente do modelo presencial tradicional.
+          </p>
+        </div>
+      </div>
+
+      <!-- Destaque Messa 2010 -->
+      <div class="panel" style="background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%); border: 1px solid var(--accent-border); padding: clamp(1.1rem, 2vw, 1.5rem);">
+        <div style="display: flex; flex-direction: column; gap: 0.9rem; align-items: flex-start;">
+          <div style="display: flex; gap: 0.85rem; align-items: center;">
+            <div style="background: var(--accent); color: var(--accent-contrast); padding: 0.6rem; border-radius: 8px; line-height: 0; flex-shrink: 0;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <h3 style="margin: 0; font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); color: var(--accent-text);">A busca por uma Aprendizagem Significativa (Messa, 2010)</h3>
+          </div>
+          <div>
+            <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.92rem); line-height: 1.6; margin-bottom: 0.5rem; color: var(--text);">
+              Messa (2010) salienta que a simples transposição de materiais impressos para a tela não configura um AVA eficaz. O ambiente atinge sua potência transformadora quando estimula a curiosidade epistêmica, propõe problemas verossímeis do campo da saúde e conecta a teoria às situações reais vivenciadas pelo futuro fisioterapeuta.
+            </p>
+            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">
+              Foco na construção dialógica e no pensamento crítico sobre os cuidados em saúde.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. COMO FUNCIONA (STEPPER) ==================== -->
+    <section id="tab-funcionamento" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-funcionamento">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Percurso do Estudante no AVA</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Clique em cada etapa abaixo para compreender o fluxo contínuo de aprendizagem em um ambiente on-line:
+        </p>
+      </div>
+
+      <!-- Stepper Buttons -->
+      <ul class="stepper-nav" role="tablist">
+        <li class="stepper-step active" onclick="app.setStep(0)" tabindex="0" role="button" aria-label="Etapa 1: Acesso e navegação no ambiente">
+          <div class="step-circle">1</div>
+          <div class="step-label">1. Acesso & Navegação</div>
+        </li>
+        <li class="stepper-step" onclick="app.setStep(1)" tabindex="0" role="button" aria-label="Etapa 2: Orientações didáticas">
+          <div class="step-circle">2</div>
+          <div class="step-label">2. Orientações Didáticas</div>
+        </li>
+        <li class="stepper-step" onclick="app.setStep(2)" tabindex="0" role="button" aria-label="Etapa 3: Estudo de conteúdos">
+          <div class="step-circle">3</div>
+          <div class="step-label">3. Estudo de Conteúdos</div>
+        </li>
+        <li class="stepper-step" onclick="app.setStep(3)" tabindex="0" role="button" aria-label="Etapa 4: Interação e colaboração">
+          <div class="step-circle">4</div>
+          <div class="step-label">4. Interação & Trocas</div>
+        </li>
+        <li class="stepper-step" onclick="app.setStep(4)" tabindex="0" role="button" aria-label="Etapa 5: Realização de atividades">
+          <div class="step-circle">5</div>
+          <div class="step-label">5. Realização de Atividades</div>
+        </li>
+        <li class="stepper-step" onclick="app.setStep(5)" tabindex="0" role="button" aria-label="Etapa 6: Avaliação e feedback">
+          <div class="step-circle">6</div>
+          <div class="step-label">6. Avaliação & Feedback</div>
+        </li>
+      </ul>
+
+      <!-- Step Content Display -->
+      <div id="step-card" class="step-detail-card">
+        <div id="step-icon-container" style="background: var(--accent-subtle); color: var(--accent-text); padding: 0.85rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; flex-shrink: 0;">
+          <!-- Injected via JS -->
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <span id="step-badge" class="shell-badge" style="background: var(--accent-soft); color: var(--accent-text); font-weight: 700;">Etapa 1 de 6</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Jornada do Aluno na EaD</span>
+          </div>
+          <h3 id="step-title" style="margin: 0.6rem 0 0.45rem; font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.25rem); color: var(--text);">1. Acesso e navegação no ambiente</h3>
+          <p id="step-description" style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.92rem); color: var(--text); line-height: 1.6; margin: 0 0 1.25rem;">
+            O discente ingressa no AVA institucional (ex.: SIGAA ou Solar/UFC) utilizando suas credenciais oficiais, visualiza o cronograma, a ementa do módulo de Fisioterapia e reconhece as trilhas pedagógicas organizadas pelo professor.
+          </p>
+          <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+            <button class="btn btn-touch" style="border: 1px solid var(--border); background: var(--surface);" onclick="app.prevStep()" aria-label="Etapa anterior">
+              &larr; Anterior
+            </button>
+            <button class="btn btn-touch" style="background: var(--accent); color: var(--accent-contrast); border: none; font-weight: 600;" onclick="app.nextStep()" aria-label="Próxima etapa">
+              Próxima Etapa &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. FERRAMENTAS ==================== -->
+    <section id="tab-ferramentas" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-ferramentas">
+      <div style="margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Recursos dos Ambientes Virtuais de Aprendizagem</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Categorização e potencial pedagógico fundamentados em (Maquiné, 2020) e (Silva, 2025). Filtre por funcionalidade:
+        </p>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-btn-group" role="group" aria-label="Filtro de recursos">
+        <button class="filter-btn active" onclick="app.filterTools('all', this)">Todas as categorias</button>
+        <button class="filter-btn" onclick="app.filterTools('comunicacao', this)">Comunicação</button>
+        <button class="filter-btn" onclick="app.filterTools('conteudo', this)">Conteúdo</button>
+        <button class="filter-btn" onclick="app.filterTools('avaliacao', this)">Avaliação</button>
+        <button class="filter-btn" onclick="app.filterTools('colaboracao', this)">Colaboração</button>
+      </div>
+
+      <!-- Grid of Tools (Totalmente Responsiva 1 col mobile -> 2 col tablet -> 3+ col desktop) -->
+      <div id="tools-grid" class="cards-responsive-grid">
+        <!-- Injected dynamically via JS to allow smooth filtering -->
+      </div>
+    </section>
+
+    <!-- ==================== 5. EVOLUÇÃO ==================== -->
+    <section id="tab-evolucao" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-evolucao">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Linha do Tempo: As Gerações da EaD até os AVAs</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Compreenda o desenvolvimento histórico da mediação tecnológica até a consolidação dos ecossistemas digitais atuais. Clique nos marcos para expandir detalhes.
+        </p>
+      </div>
+
+      <div class="timeline">
+        <!-- Gen 1 -->
+        <div class="timeline-item active" onclick="app.toggleTimeline(this)">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <span class="shell-badge" style="background: #e2e8f0; color: #334155; margin-bottom: 0.4rem;">Fim do séc. XIX e início do séc. XX</span>
+            <h4 style="margin: 0.2rem 0; font-size: 1.1rem; color: var(--text);">1ª Geração: Educação por Correspondência</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.5rem 0 0; line-height: 1.5;">
+              Envio de guias e apostilas impressas via serviço postal. Comunicação unidirecional e com longo tempo de resposta. O estudante estudava de forma essencialmente solitária e autônoma.
+            </p>
+          </div>
+        </div>
+
+        <!-- Gen 2 -->
+        <div class="timeline-item" onclick="app.toggleTimeline(this)">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <span class="shell-badge" style="background: #e2e8f0; color: #334155; margin-bottom: 0.4rem;">Meados do séc. XX (Anos 1960–1970)</span>
+            <h4 style="margin: 0.2rem 0; font-size: 1.1rem; color: var(--text);">2ª Geração: Rádio e Televisão Educativa</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.5rem 0 0; line-height: 1.5;">
+              Uso de radiodifusão e teleaulas associados a fitas cassete e materiais impressos (ex.: telecursos). Ampliação massiva do alcance cultural e escolar, ainda marcada por baixa interatividade individual.
+            </p>
+          </div>
+        </div>
+
+        <!-- Gen 3 -->
+        <div class="timeline-item" onclick="app.toggleTimeline(this)">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <span class="shell-badge" style="background: #e2e8f0; color: #334155; margin-bottom: 0.4rem;">Anos 1990 e início dos anos 2000</span>
+            <h4 style="margin: 0.2rem 0; font-size: 1.1rem; color: var(--text);">3ª Geração: Internet, Hipermídia e Web</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.5rem 0 0; line-height: 1.5;">
+              Surgimento da World Wide Web, correio eletrônico e CD-ROMs interativos. O conteúdo adquire hiperlinks não lineares e as primeiras listas de discussão digital inauguram a troca ágil de informações.
+            </p>
+          </div>
+        </div>
+
+        <!-- Gen 4 -->
+        <div class="timeline-item" onclick="app.toggleTimeline(this)">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text); margin-bottom: 0.4rem;">Anos 2000 aos dias atuais</span>
+            <h4 style="margin: 0.2rem 0; font-size: 1.1rem; color: var(--accent-text);">4ª Geração: AVAs e Ecossistemas On-line</h4>
+            <p style="font-size: 0.88rem; color: var(--text); margin: 0.5rem 0 0; line-height: 1.5;">
+              Consolidação de plataformas integradas como <strong>Moodle, Solar (UFC), SIGAA (UFC) e Google Classroom</strong>. O processo educativo passa a contar com acompanhamento por dados analíticos (learning analytics), múltiplos formatos multimídia, colaboração síncrona/assíncrona e acessibilidade estruturada.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 6. AVALIAÇÃO ==================== -->
+    <section id="tab-avaliacao" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-avaliacao">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Recursos para Avaliação da Aprendizagem</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Estudo comparativo entre ambientes virtuais segundo <strong>Maquiné (2020)</strong>. Clique para abrir cada modalidade:
+        </p>
+      </div>
+
+      <!-- Accordion -->
+      <div class="accordion-item open">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="true">
+          <span>1. Modalidades: Diagnóstica, Formativa e Somativa</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>Nos AVAs, a avaliação não se reduz a testes pontuais, distribuindo-se pedagogicamente em três pilares:</p>
+          <ul>
+            <li><strong>Avaliação Diagnóstica:</strong> Sondagem inicial de conhecimentos prévios e nivelamento conceitual sobre temas da fisioterapia.</li>
+            <li><strong>Avaliação Formativa:</strong> Ocorre processualmente ao longo das semanas, fornecendo feedbacks contínuos e correções de rota antes do encerramento das unidades.</li>
+            <li><strong>Avaliação Somativa:</strong> Verificação final da síntese de competências desenvolvidas no percurso acadêmico.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="false">
+          <span>2. Questionários On-line (Quizzes e Testes Objetivos)</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>Ferramenta comum em plataformas como Moodle e Google Classroom com capacidade de aleatorização de itens, bancos de questões parametrizados, limites de tempo e emissão de feedback automático com justificativa didática imediata.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="false">
+          <span>3. Tarefas e Portfólios Digitais</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>Permitem a submissão de relatórios de casos clínicos, estudos de anatomia palpatória em vídeo e sínteses reflexivas. Favorecem a aplicação de <em>rubricas avaliativas</em> transparentes, onde os critérios de pontuação são previamente conhecidos pelo estudante.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="false">
+          <span>4. Fóruns Avaliativos e Discussão Crítica</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>O foco reside na argumentação fundamentada na literatura científica. A avaliação considera a profundidade da análise, a frequência de participação, a resposta respeitosa aos pares e a capacidade de articulação entre prática e teoria fisioterapêutica.</p>
+        </div>
+      </div>
+
+      <!-- Key message box -->
+      <div class="panel" style="margin-top: 1.5rem; background: var(--accent-subtle); border: 1px solid var(--accent-border); padding: 1.25rem;">
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <div style="font-weight: 700; color: var(--accent-text); font-size: 0.95rem;">
+            Mensagem-chave (Maquiné, 2020):
+          </div>
+        </div>
+        <p style="margin: 0.5rem 0 0; font-size: 0.9rem; color: var(--text); line-height: 1.5;">
+          "A escolha do recurso avaliativo deve estar estritamente alinhada ao objetivo de aprendizagem proposto. A ferramenta técnica é subordinada à concepção pedagógica."
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== 7. PLATAFORMAS ==================== -->
+    <section id="tab-plataformas" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-plataformas">
+      <div style="margin-bottom: clamp(1rem, 2vw, 1.5rem);">
+        <h2 style="font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem); margin-top: 0; color: var(--text);">Onde os AVAs Acontecem: Panorama de Plataformas</h2>
+        <p style="color: var(--text-muted); font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); margin-top: 0.25rem;">
+          Conheça as características dos ambientes utilizados no ensino superior e na Universidade Federal do Ceará (Silva; Araújo, 2025).
+        </p>
+      </div>
+
+      <div class="cards-responsive-grid">
+        <!-- SOLAR UFC -->
+        <div class="panel" style="border-top: 4px solid var(--accent); padding: clamp(1rem, 2vw, 1.35rem); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap;">
+              <h3 style="margin: 0; font-size: clamp(1.05rem, 1rem + 0.2vw, 1.2rem); color: var(--accent-text);">Solar</h3>
+              <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text);">AVA Institucional UFC</span>
+            </div>
+            <p style="font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.9rem); line-height: 1.55; color: var(--text); margin-bottom: 0.75rem;">
+              Desenvolvido pelo Instituto UFC Virtual, o Solar foi pioneiro na gestão dos cursos semipresenciais e a distância da universidade, integrando materiais multimídia e acompanhamento tutorial customizado.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border);">
+            <strong>Contexto de uso:</strong> Cursos da UFC Virtual, projetos de extensão e formações continuadas em saúde.
+          </div>
+        </div>
+
+        <!-- SIGAA UFC -->
+        <div class="panel" style="border-top: 4px solid #2563eb; padding: clamp(1rem, 2vw, 1.35rem); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap;">
+              <h3 style="margin: 0; font-size: clamp(1.05rem, 1rem + 0.2vw, 1.2rem); color: #1d4ed8;">SIGAA</h3>
+              <span class="shell-badge" style="background: #dbeafe; color: #1e40af;">Turmas Virtuais UFC</span>
+            </div>
+            <p style="font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.9rem); line-height: 1.55; color: var(--text); margin-bottom: 0.75rem;">
+              Sistema Integrado de Gestão de Atividades Acadêmicas da UFC. Além do controle de matrículas e notas, possui a ferramenta "Turma Virtual", com fóruns, tarefas, chat, notícias e repositório de arquivos.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border);">
+            <strong>Contexto de uso:</strong> Todas as disciplinas presenciais e híbridas da graduação em Fisioterapia da UFC.
+          </div>
+        </div>
+
+        <!-- MOODLE -->
+        <div class="panel" style="border-top: 4px solid #ea580c; padding: clamp(1rem, 2vw, 1.35rem); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap;">
+              <h3 style="margin: 0; font-size: clamp(1.05rem, 1rem + 0.2vw, 1.2rem); color: #c2410c;">Moodle</h3>
+              <span class="shell-badge" style="background: #ffedd5; color: #9a3412;">Código Aberto</span>
+            </div>
+            <p style="font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.9rem); line-height: 1.55; color: var(--text); margin-bottom: 0.75rem;">
+              O ambiente virtual de código aberto mais consagrado globalmente. Destaca-se por sua extrema modularidade, ampla oferta de plugins de acessibilidade, relatórios detalhados e gamificação.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border);">
+            <strong>Contexto de uso:</strong> Universidades públicas mundiais, pós-graduações e cursos de capacitação técnica do SUS (UNA-SUS).
+          </div>
+        </div>
+
+        <!-- GOOGLE CLASSROOM -->
+        <div class="panel" style="border-top: 4px solid #16a34a; padding: clamp(1rem, 2vw, 1.35rem); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap;">
+              <h3 style="margin: 0; font-size: clamp(1.05rem, 1rem + 0.2vw, 1.2rem); color: #15803d;">Google Classroom</h3>
+              <span class="shell-badge" style="background: #dcfce7; color: #166534;">Ensino Remoto</span>
+            </div>
+            <p style="font-size: clamp(0.84rem, 0.8rem + 0.2vw, 0.9rem); line-height: 1.55; color: var(--text); margin-bottom: 0.75rem;">
+              Notabilizou-se como um AVA ágil e intuitivo durante o ensino remoto (Silva; Araújo, 2025). Oferece integração direta com Google Drive, Documentos, Formulários e Google Meet.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 0.65rem 0.85rem; border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border);">
+            <strong>Contexto de uso:</strong> Atividades de extensão, oficinas rápidas e suporte a atividades complementares de saúde.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 8. ACESSIBILIDADE ==================== -->
+    <section id="tab-acessibilidade" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-acessibilidade">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Inclusão nos AVAs: Acessibilidade Digital</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Estudo de caso pioneiro de <strong>Neves (2022)</strong> sobre acessibilidade para deficientes auditivos e inclusão nos sistemas Solar e SIGAA/UFC.
+        </p>
+      </div>
+
+      <!-- Neves 2022 study highlight -->
+      <div class="panel" style="border-left: 4px solid var(--accent); padding: 1.25rem; margin-bottom: 1.5rem; background: var(--accent-soft);">
+        <h3 style="margin-top: 0; font-size: 1.05rem; color: var(--accent-text);">
+          Pesquisa de Referência: Sistemas Solar e SIGAA na UFC (Neves, 2022)
+        </h3>
+        <p style="font-size: 0.9rem; line-height: 1.6; margin: 0; color: var(--text);">
+          A pesquisa desenvolvida no Instituto UFC Virtual avaliou barreiras comunicacionais e ergonômicas enfrentadas por estudantes com deficiência auditiva ao interagir com interfaces acadêmicas, evidenciando que a inclusão na EaD não é opcional, mas um pré-requisito ético e pedagógico para a formação profissional de qualidade.
+        </p>
+      </div>
+
+      <!-- Accordion on Accessibility -->
+      <div class="accordion-item open">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="true">
+          <span>Desafios identificados na web e nos sistemas acadêmicos</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>Dentre os principais obstáculos catalogados por Neves (2022) constam:</p>
+          <ul>
+            <li>Vídeos explicativos sem legendas descritivas (Closed Captions) e sem tradução para a Língua Brasileira de Sinais (Libras);</li>
+            <li>Avisos sonoros sem correspondente alerta visual ou textual;</li>
+            <li>Linguagem excessivamente rebuscada e ausência de glossários visuais ilustrados para termos anatômicos e fisiológicos complexos;</li>
+            <li>Inconsistências em interfaces que impedem a interpretação fluida por tecnologias assistivas.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="false">
+          <span>Importância da acessibilidade para a inclusão na Saúde</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <p>No campo da Fisioterapia e das Ciências da Saúde, estudantes com deficiência necessitam de acesso integral e irrestrito aos mesmos materiais clínicos de aprendizagem que os demais colegas. Um AVA acessível garante equidade de oportunidades de estudo e autonomia no ritmo de formação.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="app.toggleAccordion(this)" aria-expanded="false">
+          <span>Boas práticas essenciais recomendadas (WCAG e e-MAG)</span>
+          <span class="accordion-icon">▾</span>
+        </button>
+        <div class="accordion-body">
+          <ul>
+            <li><strong>Legendas e Transcrições:</strong> Garantir que toda videoaula possua transcrição integral ou legenda sincronizada;</li>
+            <li><strong>Janela de Libras:</strong> Incorporação de intérprete nos recursos audiovisuais institucionais;</li>
+            <li><strong>Contraste de Cores:</strong> Manter proporção mínima de contraste de 4.5:1 para leitura sem fadiga visual;</li>
+            <li><strong>Navegação por Teclado:</strong> Todas as ações e botões devem ser alcançáveis via tecla <code>Tab</code> e <code>Enter</code>;</li>
+            <li><strong>Textos Alternativos:</strong> Descrição textual clara (atributo <code>alt</code>) em figuras, esquemas fisiológicos e gráficos.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top: 1.25rem; text-align: center; background: var(--surface); padding: 1rem;">
+        <span style="font-weight: 700; color: var(--accent-text); font-size: 0.95rem;">
+          "Acessibilidade não é favor: é condição estruturante para a inclusão cidadã na EaD em Saúde."
+        </span>
+      </div>
+    </section>
+
+    <!-- ==================== 9. QUIZ INTERATIVO ==================== -->
+    <section id="tab-quiz" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-quiz">
+      <div style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.35rem; margin: 0; color: var(--text);">Quiz de Fixação da Aprendizagem</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0.25rem 0 0;">
+            Responda às 4 questões para testar seus conhecimentos com feedback imediato.
+          </p>
+        </div>
+        <div id="quiz-score-badge" class="panel" style="padding: 0.5rem 1rem; border: 1px solid var(--accent-border); background: var(--accent-soft); font-weight: 700; color: var(--accent-text);">
+          Pontuação: <span id="quiz-score">0</span> / 4 respondidas
+        </div>
+      </div>
+
+      <!-- Question 1 -->
+      <div class="quiz-question-box" id="q1">
+        <div style="display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.5rem;">
+          <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text);">Questão 1</span>
+          <span style="font-weight: 600; font-size: 1rem; color: var(--text);">O que é, essencialmente, um Ambiente Virtual de Aprendizagem (AVA)?</span>
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option-btn" onclick="app.checkAnswer(1, 0, false)">
+            <span>A)</span> Um repositório simples e estático para armazenamento temporário de PDFs de aulas.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(1, 1, true)">
+            <span>B)</span> Um sistema on-line que reúne ferramentas, conteúdos e interação para mediar o processo de ensino-aprendizagem.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(1, 2, false)">
+            <span>C)</span> Um software restrito à digitação e envio burocrático de notas acadêmicas da graduação.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(1, 3, false)">
+            <span>D)</span> Um aplicativo comercial destinado unicamente à realização de videochamadas instantâneas.
+          </button>
+        </div>
+        <div class="quiz-feedback" id="feedback-q1"></div>
+      </div>
+
+      <!-- Question 2 -->
+      <div class="quiz-question-box" id="q2">
+        <div style="display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.5rem;">
+          <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text);">Questão 2</span>
+          <span style="font-weight: 600; font-size: 1rem; color: var(--text);">Qual recurso dos AVAs é tipicamente mais utilizado para comunicação assíncrona e debates reflexivos?</span>
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option-btn" onclick="app.checkAnswer(2, 0, false)">
+            <span>A)</span> Chat síncrono em tempo real.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(2, 1, false)">
+            <span>B)</span> Sessão de videoconferência ao vivo pelo Google Meet.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(2, 2, true)">
+            <span>C)</span> Fórum de discussão temática.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(2, 3, false)">
+            <span>D)</span> Caixa de avisos urgentes no mural principal.
+          </button>
+        </div>
+        <div class="quiz-feedback" id="feedback-q2"></div>
+      </div>
+
+      <!-- Question 3 -->
+      <div class="quiz-question-box" id="q3">
+        <div style="display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.5rem;">
+          <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text);">Questão 3</span>
+          <span style="font-weight: 600; font-size: 1rem; color: var(--text);">No contexto específico da Universidade Federal do Ceará (UFC), quais ambientes representam a infraestrutura institucional?</span>
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option-btn" onclick="app.checkAnswer(3, 0, true)">
+            <span>A)</span> Sistemas Solar e Turmas Virtuais do SIGAA.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(3, 1, false)">
+            <span>B)</span> Exclusivamente plataformas de redes sociais públicas.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(3, 2, false)">
+            <span>C)</span> Canvas LMS de empresas privadas internacionais.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(3, 3, false)">
+            <span>D)</span> Somente mensagens enviadas por correio eletrônico institucional.
+          </button>
+        </div>
+        <div class="quiz-feedback" id="feedback-q3"></div>
+      </div>
+
+      <!-- Question 4 -->
+      <div class="quiz-question-box" id="q4">
+        <div style="display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.5rem;">
+          <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text);">Questão 4</span>
+          <span style="font-weight: 600; font-size: 1rem; color: var(--text);">Por que a acessibilidade é um elemento indispensável e prioritário no desenho didático dos AVAs?</span>
+        </div>
+        <div class="quiz-options">
+          <button class="quiz-option-btn" onclick="app.checkAnswer(4, 0, false)">
+            <span>A)</span> Serve exclusivamente para preencher exigências estéticas dos programadores.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(4, 1, false)">
+            <span>B)</span> Torna o site mais rápido apenas para conexões discadas.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(4, 2, true)">
+            <span>C)</span> Garante a inclusão, equidade e autonomia de todos os estudantes, superando barreiras comunicacionais.
+          </button>
+          <button class="quiz-option-btn" onclick="app.checkAnswer(4, 3, false)">
+            <span>D)</span> Reduz a necessidade de o professor publicar conteúdos na disciplina.
+          </button>
+        </div>
+        <div class="quiz-feedback" id="feedback-q4"></div>
+      </div>
+
+      <div style="text-align: right; margin-top: 1rem;">
+        <button class="btn" style="padding: 0.45rem 1rem; font-size: 0.85rem;" onclick="app.resetQuiz()">Reiniciar Quiz</button>
+      </div>
+    </section>
+
+    <!-- ==================== 10. REFERÊNCIAS ==================== -->
+    <section id="tab-referencias" class="tab-pane" role="tabpanel" aria-labelledby="btn-tab-referencias">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.35rem; margin-top: 0; color: var(--text);">Referências Bibliográficas (Normas ABNT)</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Fontes científicas e documentais que fundamentam este material didático:
+        </p>
+      </div>
+
+      <div class="reference-entry">
+        DONA, Cleyson. <strong>Ambientes Virtuais de Aprendizagem</strong>. Publicado pelo canal Cleyson Dona. São Paulo, 2013. Disponível em: <a href="https://youtu.be/hYd5bXNzwUM" target="_blank" rel="noopener noreferrer">https://youtu.be/hYd5bXNzwUM</a>. Acesso em: 09 out. 2025.
+      </div>
+
+      <div class="reference-entry">
+        RIBEIRO, Elvia Nunes; MENDONÇA, Gilda Aquino de Araújo; MENDONÇA, Alzino Furtado de. <strong>A importância dos ambientes virtuais de aprendizagem na busca de novos domínios da EaD</strong>. In: CONGRESSO INTERNACIONAL DE EDUCAÇÃO A DISTÂNCIA, 13., 2007, Curitiba. <em>Anais [...]</em>. Curitiba: [s.n.], 2007. Disponível em: <a href="http://www.abed.org.br/congresso2007/tc/4162007104526AM.pdf" target="_blank" rel="noopener noreferrer">http://www.abed.org.br/congresso2007/tc/4162007104526AM.pdf</a>. Acesso em: 9 out. 2025.
+      </div>
+
+      <div class="reference-entry">
+        MAQUINÉ, Gilmara Oliveira. <strong>Recursos para avaliação da aprendizagem: estudo comparativo entre ambientes virtuais de aprendizagem</strong>. In: WORKSHOP DE INFORMÁTICA NA ESCOLA (WIE), 26., 2020, Evento Online. <em>Anais [...]</em>. Porto Alegre: Sociedade Brasileira de Computação, 2020. p. 299-308. DOI: <a href="https://doi.org/10.5753/cbie.wie.2020.299" target="_blank" rel="noopener noreferrer">https://doi.org/10.5753/cbie.wie.2020.299</a>.
+      </div>
+
+      <div class="reference-entry">
+        MESSA, Wilmara Cruz. <strong>Utilização de ambientes virtuais de aprendizagem: AVAS: a busca por uma aprendizagem significativa</strong>. <em>Revista Brasileira de Aprendizagem Aberta e a Distância</em>, v. 9, p. 1-49, 2010. Disponível em: <a href="http://www.abed.org.br/revistacientifica/Revista_PDF_Doc/2010/2010_2462010174147.pdf" target="_blank" rel="noopener noreferrer">http://www.abed.org.br/revistacientifica/Revista_PDF_Doc/2010/2010_2462010174147.pdf</a>. Acesso em: 09 out. 2025.
+      </div>
+
+      <div class="reference-entry">
+        MEYER, Antonia Izabel da Silva. <strong>Ambientes Virtuais de Aprendizagem: conceitos e características</strong>. <em>Revista Kiri-Kerê Pesquisa em Ensino</em>, v. 1, n. 12, 2022. DOI: <a href="https://doi.org/10.47456/krkr.v1i12.37409" target="_blank" rel="noopener noreferrer">https://doi.org/10.47456/krkr.v1i12.37409</a>.
+      </div>
+
+      <div class="reference-entry">
+        NEVES, Ana Eloise Ferreira. <strong>Acessibilidade para deficientes auditivos na web: um estudo de caso nos sistemas solar e sigaa/ufc</strong>. 2022. 42 f. Trabalho de Conclusão de Curso (Graduação em Sistemas e Mídias Digitais) – Instituto UFC Virtual, Universidade Federal do Ceará, Fortaleza, 2022.
+      </div>
+
+      <div class="reference-entry">
+        SILVA, Ágila Maria Martins da; ARAÚJO, Aldarley Andrade de. <strong>O processo de ensino-aprendizagem no século XXI e o papel do Google Classroom como AVA eficiente no ensino remoto</strong>. <em>Revista Ibero-Americana de Humanidades, Ciências e Educação (REASE)</em>, São Paulo, v. 11, n. 8, agosto 2025. Disponível em: <a href="https://periodicorease.pro.br/rease/article/download/19690/12446/56071" target="_blank" rel="noopener noreferrer">https://periodicorease.pro.br/rease/article/download/19690/12446/56071</a>. Acesso em: 10 out. 2025.
+      </div>
+
+      <div class="reference-entry">
+        SILVA, Andréa Soares Rocha da. <strong>Ambientes Virtuais de Aprendizagem e suas Ferramentas</strong>. Disponível em: <a href="https://sites.google.com/view/eads-20252-avasufc/in%C3%ADcio" target="_blank" rel="noopener noreferrer">https://sites.google.com/view/eads-20252-avasufc/in%C3%ADcio</a>. Acesso em: 10 out. 2025.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER TOTALMENTE RESPONSIVO -->
+  <footer class="shell-footer" style="margin-top: clamp(2rem, 4vw, 3.5rem); border-top: 2px solid var(--accent-border); background: var(--surface); padding: clamp(1.5rem, 3vw, 2.5rem) clamp(0.75rem, 3vw, 1.5rem);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: clamp(1rem, 2vw, 1.5rem);">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+        <div>
+          <div style="font-weight: 700; color: var(--text); font-size: clamp(0.98rem, 0.9rem + 0.3vw, 1.12rem);">
+            Ambientes Virtuais de Aprendizagem na EaD On-line
+          </div>
+          <div style="font-size: clamp(0.8rem, 0.76rem + 0.2vw, 0.88rem); color: var(--text-muted); margin-top: 0.25rem;">
+            Módulo EaD em Saúde · Fisioterapia · Universidade Federal do Ceará (UFC) · 2026
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-touch" onclick="window.print()" style="font-size: 0.85rem; border: 1px solid var(--border); background: var(--surface);">
+            Imprimir / Salvar em PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Direitos Autorais Restritivos -->
+      <div class="panel" style="background: var(--accent-soft); border: 1px solid var(--accent-border); border-left: 4px solid var(--accent); padding: clamp(0.9rem, 2vw, 1.25rem);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem; flex-wrap: wrap;">
+          <span class="shell-badge" style="background: var(--accent); color: var(--accent-contrast); font-weight: 700; font-size: 0.78rem;">
+            DIREITOS AUTORAIS
+          </span>
+          <span style="font-weight: 700; font-size: clamp(0.88rem, 0.84rem + 0.2vw, 1rem); color: var(--accent-text);">
+            © 2026 Profa. Dra. Andréa Soares Rocha da Silva. <strong>Todos os direitos reservados.</strong>
+          </span>
+        </div>
+        <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); color: var(--text); line-height: 1.55; margin: 0;">
+          <strong>Todos os direitos reservados.</strong> A reprodução, modificação, distribuição ou veiculação total ou parcial deste material didático é terminantemente proibida sem autorização prévia e expressa por escrito da autora.
+        </p>
+      </div>
+
+      <!-- Citação do Recurso no Formato ABNT -->
+      <div class="panel" style="background: var(--surface); border: 1px solid var(--border); padding: clamp(0.9rem, 2vw, 1.25rem);">
+        <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.4rem;">
+          Citação do Recurso (Formato ABNT)
+        </div>
+        <div style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.88rem); line-height: 1.6; color: var(--text); overflow-wrap: break-word;">
+          SILVA, Andréa Soares Rocha da. Ambientes Virtuais de Aprendizagem na EaD On-line. 2026. Disponível em: <a href="https://andreagets.github.io/aula-ava-ead-online" target="_blank" rel="noopener noreferrer" style="color: var(--accent-text); word-break: break-all; overflow-wrap: anywhere; text-decoration: underline; font-weight: 500;">https://andreagets.github.io/aula-ava-ead-online</a>. Acesso em: 18 set. 2026. A reprodução total ou parcial deste material é proibida sem autorização prévia da autora (todos os direitos reservados).
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const app = {
+      // Estado do menu retrátil
+      isDrawerOpen: false,
+
+      // Ferramentas Data
+      tools: [
+        {
+          name: "Fóruns de Discussão",
+          category: "comunicacao",
+          categoryLabel: "Comunicação",
+          desc: "Espaço assíncrono para debates temáticos, compartilhamento de artigos científicos e reflexão coletiva de casos.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+        },
+        {
+          name: "Chat & Mensagens Internas",
+          category: "comunicacao",
+          categoryLabel: "Comunicação",
+          desc: "Comunicação rápida para esclarecimento de dúvidas pontuais entre aluno, professor e monitores.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>`
+        },
+        {
+          name: "Videoconferência Integrada",
+          category: "comunicacao",
+          categoryLabel: "Comunicação",
+          desc: "Aulas síncronas ao vivo, seminários clínicos e discussões plenárias com compartilhamento de tela.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect width="14" height="14" x="1" y="5" rx="2"/></svg>`
+        },
+        {
+          name: "Repositório de Arquivos & PDFs",
+          category: "conteudo",
+          categoryLabel: "Conteúdo",
+          desc: "Artigos da SciELO/PubMed, diretrizes do Ministério da Saúde e apostilas didáticas organizadas por módulo.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`
+        },
+        {
+          name: "Videoaulas & Podcasts",
+          category: "conteudo",
+          categoryLabel: "Conteúdo",
+          desc: "Demonstrações práticas de testes musculoesqueléticos, biomecânica e orientações clínicas gravadas.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>`
+        },
+        {
+          name: "Links & Páginas Web",
+          category: "conteudo",
+          categoryLabel: "Conteúdo",
+          desc: "Encaminhamentos para bases de dados científicas da UFC, bibliotecas virtuais e atlas anatômicos 3D.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
+        },
+        {
+          name: "Questionários & Quizzes",
+          category: "avaliacao",
+          categoryLabel: "Avaliação",
+          desc: "Testes formativos objetivos de múltipla escolha com correção automática e justificativa explicativa.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`
+        },
+        {
+          name: "Tarefas & Envio de Trabalhos",
+          category: "avaliacao",
+          categoryLabel: "Avaliação",
+          desc: "Entrega de estudos de caso, anamneses simuladas e resenhas com devolução de notas e comentários docentes.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>`
+        },
+        {
+          name: "Portfólios & Rubricas",
+          category: "avaliacao",
+          categoryLabel: "Avaliação",
+          desc: "Registro contínuo do desenvolvimento das competências clínicas com critérios claros de pontuação.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`
+        },
+        {
+          name: "Wikis Colaborativas",
+          category: "colaboracao",
+          categoryLabel: "Colaboração",
+          desc: "Construção textual conjunta de termos técnicos, glossários de fisioterapia e guias de conduta hospitalar.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`
+        },
+        {
+          name: "Grupos Virtuais de Trabalho",
+          category: "colaboracao",
+          categoryLabel: "Colaboração",
+          desc: "Divisão de turmas em pequenas equipes para resolução de problemas reais de saúde coletiva.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+        },
+        {
+          name: "Diários Reflexivos",
+          category: "colaboracao",
+          categoryLabel: "Colaboração",
+          desc: "Anotações pessoais e compartilhadas com o orientador acerca das experiências em vivências clínicas.",
+          icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>`
+        }
+      ],
+
+      // Stepper Steps
+      steps: [
+        {
+          title: "1. Acesso e navegação no ambiente",
+          desc: "O discente ingressa no AVA institucional (ex.: SIGAA ou Solar/UFC) utilizando suas credenciais oficiais, visualiza o cronograma, a ementa do módulo de Fisioterapia e reconhece as trilhas pedagógicas organizadas pelo professor.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>`
+        },
+        {
+          title: "2. Tomar ciência das orientações didáticas de cada aula",
+          desc: "O estudante deve ler e tomar ciência das orientações didáticas de cada aula (plano de ensino, objetivos de aprendizagem, cronograma, instruções de atividades e critérios de avaliação) antes de prosseguir com o estudo dos materiais.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`
+        },
+        {
+          title: "3. Estudo de conteúdos e materiais",
+          desc: "O aluno acessa a biblioteca de videoaulas, artigos científicos em PDF, links externos e tutoriais. Realiza leituras estruturadas com anotações e autoestudo no seu próprio ritmo.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`
+        },
+        {
+          title: "4. Interação e colaboração (fóruns, chats, mensagens)",
+          desc: "Participação ativa em fóruns temáticos, trocas com monitores e colegas sobre dúvidas clínicas, postagens em wikis e interação síncrona em webconferências ou chats formativos.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+        },
+        {
+          title: "5. Realização de atividades e tarefas",
+          desc: "Execução de estudos de caso, questionários formativos, resolução de situações-problema da Fisioterapia e envio de relatórios técnicos de práticas simuladas dentro dos prazos estipulados.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/><path d="m9 14 2 2 4-4"/></svg>`
+        },
+        {
+          title: "6. Avaliação e feedback",
+          desc: "Recebimento de notas, rubricas avaliativas detalhadas e orientações personalizadas do docente para aprimoramento contínuo das competências de reabilitação física e saúde coletiva.",
+          icon: `<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`
+        }
+      ],
+      currentStep: 0,
+
+      // Quiz State
+      quizAnswers: { 1: null, 2: null, 3: null, 4: null },
+      quizExplanations: {
+        1: {
+          success: "Correto! Conforme conceituado por Messa (2010) e Meyer (2022), o AVA é um sistema integrador completo de ferramentas, conteúdos e mediação comunicacional.",
+          fail: "Incorreto. O AVA não é apenas um repositório de documentos ou um aplicativo isolado, mas sim um ecossistema educacional completo planejado para a mediação pedagógica."
+        },
+        2: {
+          success: "Exato! O fórum de discussão é o ambiente clássico e mais potente para comunicação assíncrona, onde os alunos refletem e elaboram suas respostas com calma.",
+          fail: "Atenção: Chats e videoconferências ao vivo são síncronos (em tempo real). O recurso típico para debate assíncrono e reflexivo é o fórum."
+        },
+        3: {
+          success: "Perfeito! A Universidade Federal do Ceará utiliza institucionalmente o Solar (desenvolvido pelo Instituto UFC Virtual) e as Turmas Virtuais do SIGAA.",
+          fail: "Não exatamente. A infraestrutura própria da UFC é composta pelo sistema Solar e pelas Turmas Virtuais integradas ao SIGAA."
+        },
+        4: {
+          success: "Exatamente! Segundo Neves (2022), a acessibilidade garante que pessoas com deficiência auditiva, visual ou motora tenham igualdade de oportunidades educacionais.",
+          fail: "Incorreto. Acessibilidade na web não é mero adereço estético: é uma exigência pedagógica e legal que assegura o direito universal à aprendizagem."
+        }
+      },
+
+      init() {
+        this.renderTools('all');
+        this.renderStep();
+        this.setupNavigation();
+        this.setupTooltips();
+        this.setupMobileMenu();
+      },
+
+      // Gerenciamento do Menu Retrátil (Mobile Drawer — acionado apenas na barra de menu)
+      setupMobileMenu() {
+        const stickyBtn = document.getElementById('sticky-menu-btn');
+        const closeBtn = document.getElementById('drawer-close-btn');
+        const backdrop = document.getElementById('drawer-backdrop');
+
+        if (stickyBtn) {
+          stickyBtn.addEventListener('click', () => this.toggleDrawer());
+        }
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => this.closeDrawer());
+        }
+        if (backdrop) {
+          backdrop.addEventListener('click', () => this.closeDrawer());
+        }
+
+        // Fecha com tecla ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.isDrawerOpen) {
+            this.closeDrawer();
+          }
+        });
+
+        // Fecha drawer ao redimensionar além de 1024px (desktop)
+        window.addEventListener('resize', () => {
+          if (window.innerWidth >= 1024 && this.isDrawerOpen) {
+            this.closeDrawer();
+          }
+        });
+      },
+
+      toggleDrawer() {
+        if (this.isDrawerOpen) {
+          this.closeDrawer();
+        } else {
+          this.openDrawer();
+        }
+      },
+
+      openDrawer() {
+        this.isDrawerOpen = true;
+        const drawer = document.getElementById('mobile-nav-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        const stickyBtn = document.getElementById('sticky-menu-btn');
+
+        if (drawer) {
+          drawer.classList.add('is-open');
+          drawer.setAttribute('aria-hidden', 'false');
+        }
+        if (backdrop) {
+          backdrop.classList.add('is-open');
+          backdrop.setAttribute('aria-hidden', 'false');
+        }
+
+        document.body.classList.add('menu-open');
+
+        if (stickyBtn) {
+          stickyBtn.classList.add('is-active');
+          stickyBtn.setAttribute('aria-expanded', 'true');
+          stickyBtn.setAttribute('aria-label', 'Fechar menu de navegação');
+          const txt = stickyBtn.querySelector('.menu-btn-text');
+          if (txt) txt.textContent = 'Fechar';
+        }
+      },
+
+      closeDrawer() {
+        this.isDrawerOpen = false;
+        const drawer = document.getElementById('mobile-nav-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        const stickyBtn = document.getElementById('sticky-menu-btn');
+
+        if (drawer) {
+          drawer.classList.remove('is-open');
+          drawer.setAttribute('aria-hidden', 'true');
+        }
+        if (backdrop) {
+          backdrop.classList.remove('is-open');
+          backdrop.setAttribute('aria-hidden', 'true');
+        }
+
+        document.body.classList.remove('menu-open');
+
+        if (stickyBtn) {
+          stickyBtn.classList.remove('is-active');
+          stickyBtn.setAttribute('aria-expanded', 'false');
+          stickyBtn.setAttribute('aria-label', 'Abrir menu de navegação');
+          const txt = stickyBtn.querySelector('.menu-btn-text');
+          if (txt) txt.textContent = 'Menu';
+        }
+      },
+
+      // Ativação e sincronização unificada de abas (desktop + gaveta retrátil)
+      activateTab(tabId) {
+        // Atualiza painéis de conteúdo
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        const targetPane = document.getElementById(tabId);
+        if (targetPane) {
+          targetPane.classList.add('active');
+        }
+
+        // Sincroniza botões na barra desktop
+        const desktopBtns = document.querySelectorAll('.desktop-nav-tabs .tab-btn');
+        let activeLabelText = '';
+        desktopBtns.forEach(btn => {
+          const isTarget = btn.getAttribute('data-tab') === tabId;
+          btn.classList.toggle('active', isTarget);
+          btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+          if (isTarget) {
+            activeLabelText = btn.textContent.trim();
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        });
+
+        // Sincroniza botões na gaveta móvel
+        const drawerBtns = document.querySelectorAll('.drawer-tab-btn');
+        drawerBtns.forEach(btn => {
+          const isTarget = btn.getAttribute('data-tab') === tabId;
+          btn.classList.toggle('active', isTarget);
+          btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+          if (isTarget && !activeLabelText) {
+            activeLabelText = btn.textContent.trim();
+          }
+        });
+
+        // Atualiza rótulo na barra fixa móvel
+        const mobileTitle = document.getElementById('mobile-current-title');
+        if (mobileTitle && activeLabelText) {
+          mobileTitle.textContent = activeLabelText;
+        }
+
+        // Fecha a gaveta automaticamente após a seleção
+        if (this.isDrawerOpen) {
+          this.closeDrawer();
+        }
+      },
+
+      setupNavigation() {
+        // Cliques nas abas desktop
+        const desktopBtns = document.querySelectorAll('.desktop-nav-tabs .tab-btn');
+        desktopBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-tab');
+            this.activateTab(targetId);
+          });
+        });
+
+        // Cliques nos itens do menu retrátil
+        const drawerBtns = document.querySelectorAll('.drawer-tab-btn');
+        drawerBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-tab');
+            this.activateTab(targetId);
+            // Rolagem suave ao início do conteúdo
+            const mainContainer = document.querySelector('main');
+            if (mainContainer) {
+              const navWrapper = document.querySelector('.tabs-wrapper');
+              const offset = navWrapper ? navWrapper.offsetHeight + 10 : 0;
+              const topPos = mainContainer.getBoundingClientRect().top + window.pageYOffset - offset;
+              window.scrollTo({ top: topPos, behavior: 'smooth' });
+            }
+          });
+        });
+      },
+
+      setupTooltips() {
+        // Suporte a toque para tooltips em mobile/tablet (touch devices)
+        const tooltips = document.querySelectorAll('.term-tooltip');
+        tooltips.forEach(t => {
+          t.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasActive = t.classList.contains('tooltip-active');
+            tooltips.forEach(other => other.classList.remove('tooltip-active'));
+            if (!wasActive) {
+              t.classList.add('tooltip-active');
+            }
+          });
+        });
+
+        // Tocar fora fecha todos os tooltips
+        document.addEventListener('click', () => {
+          tooltips.forEach(t => t.classList.remove('tooltip-active'));
+        });
+      },
+
+      renderTools(filter) {
+        const grid = document.getElementById('tools-grid');
+        grid.innerHTML = '';
+        const list = filter === 'all' ? this.tools : this.tools.filter(t => t.category === filter);
+
+        list.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'panel';
+          card.style.cssText = 'padding: clamp(0.95rem, 2vw, 1.25rem); display: flex; flex-direction: column; justify-content: space-between; border-left: 3px solid var(--accent); min-height: 140px;';
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.65rem;">
+                <div style="color: var(--accent); line-height: 0; flex-shrink: 0;">${item.icon}</div>
+                <span class="shell-badge" style="background: var(--accent-subtle); color: var(--accent-text); font-size: 0.74rem;">${item.categoryLabel}</span>
+              </div>
+              <h4 style="margin: 0 0 0.4rem; font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1rem); color: var(--text);">${item.name}</h4>
+              <p style="font-size: clamp(0.82rem, 0.78rem + 0.2vw, 0.86rem); color: var(--text-muted); line-height: 1.5; margin: 0;">${item.desc}</p>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      },
+
+      filterTools(cat, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.renderTools(cat);
+      },
+
+      renderStep() {
+        const cur = this.steps[this.currentStep];
+        document.getElementById('step-title').textContent = cur.title;
+        document.getElementById('step-description').textContent = cur.desc;
+        document.getElementById('step-icon-container').innerHTML = cur.icon;
+        document.getElementById('step-badge').textContent = `Etapa ${this.currentStep + 1} de ${this.steps.length}`;
+
+        const stepItems = document.querySelectorAll('.stepper-step');
+        stepItems.forEach((item, idx) => {
+          item.classList.remove('active', 'completed');
+          if (idx === this.currentStep) {
+            item.classList.add('active');
+          } else if (idx < this.currentStep) {
+            item.classList.add('completed');
+          }
+        });
+      },
+
+      setStep(idx) {
+        this.currentStep = idx;
+        this.renderStep();
+      },
+
+      nextStep() {
+        if (this.currentStep < this.steps.length - 1) {
+          this.currentStep++;
+          this.renderStep();
+        }
+      },
+
+      prevStep() {
+        if (this.currentStep > 0) {
+          this.currentStep--;
+          this.renderStep();
+        }
+      },
+
+      toggleTimeline(element) {
+        document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+      },
+
+      toggleAccordion(btn) {
+        const item = btn.closest('.accordion-item');
+        const isOpen = item.classList.contains('open');
+        item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', !isOpen);
+      },
+
+      checkAnswer(questionNum, optionIdx, isCorrect) {
+        if (this.quizAnswers[questionNum] !== null) return; // already answered
+
+        const qBox = document.getElementById(`q${questionNum}`);
+        const buttons = qBox.querySelectorAll('.quiz-option-btn');
+        const feedback = document.getElementById(`feedback-q${questionNum}`);
+
+        buttons.forEach((b, i) => {
+          b.disabled = true;
+          if (i === optionIdx) {
+            b.classList.add(isCorrect ? 'correct' : 'incorrect');
+          }
+        });
+
+        this.quizAnswers[questionNum] = isCorrect;
+
+        if (isCorrect) {
+          feedback.className = 'quiz-feedback success';
+          feedback.textContent = this.quizExplanations[questionNum].success;
+        } else {
+          feedback.className = 'quiz-feedback error';
+          feedback.textContent = this.quizExplanations[questionNum].fail;
+        }
+
+        this.updateQuizScore();
+      },
+
+      updateQuizScore() {
+        const totalAnswered = Object.values(this.quizAnswers).filter(v => v !== null).length;
+        const totalCorrect = Object.values(this.quizAnswers).filter(v => v === true).length;
+        document.getElementById('quiz-score').textContent = `${totalCorrect} acertos de ${totalAnswered}`;
+      },
+
+      resetQuiz() {
+        this.quizAnswers = { 1: null, 2: null, 3: null, 4: null };
+        document.getElementById('quiz-score').textContent = '0';
+        for (let i = 1; i <= 4; i++) {
+          const qBox = document.getElementById(`q${i}`);
+          const buttons = qBox.querySelectorAll('.quiz-option-btn');
+          const feedback = document.getElementById(`feedback-q${i}`);
+          buttons.forEach(b => {
+            b.disabled = false;
+            b.classList.remove('correct', 'incorrect');
+          });
+          feedback.className = 'quiz-feedback';
+          feedback.style.display = 'none';
+          feedback.textContent = '';
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      app.init();
+    });
+  </script>
+<script>
+/* Skip artifact shell — fixed helpers served beside every artifact. */
+(function () {
+  "use strict";
+
+  var fmt = {
+    num: function (v, opts) { return new Intl.NumberFormat("pt-BR", opts || {}).format(v); },
+    brl: function (v) { return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v); },
+    pct: function (v) { return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(v); }
+  };
+
+  // axisFmt keeps axis tick labels short (compact notation) so long values
+  // (e.g. full BRL amounts) never clip against the plot edge.
+  function axisFmt(v) {
+    return fmt.num(v, { notation: "compact", maximumFractionDigits: 1 });
+  }
+
+  // format accepts a function OR one of the fmt names ("num" | "brl" | "pct").
+  function coerceFormat(spec) {
+    if (typeof spec === "function") return spec;
+    if (typeof spec === "string" && fmt[spec]) return fmt[spec];
+    return function (v) { return fmt.num(v); };
+  }
+
+  function accent() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2563eb";
+  }
+  function mutedColor() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--text-muted").trim() || "#5b6472";
+  }
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  function frame(el, w, h) {
+    var svg = svgEl("svg", { viewBox: "0 0 " + w + " " + h, role: "img" });
+    el.innerHTML = "";
+    el.appendChild(svg);
+    return svg;
+  }
+
+  // maxOf guards the axis scale: empty values would give -Infinity (truthy,
+  // so "|| 1" can't catch it) and a non-positive max would flip the chart.
+  function maxOf(values) {
+    var m = values.length ? Math.max.apply(null, values) : 0;
+    return m > 0 ? m : 1;
+  }
+
+  // bar(el, {labels:[], values:[], color?, format?}) — vertical bar chart.
+  function bar(el, cfg) {
+    var W = 640, H = 280, padL = 46, padB = 30, padT = 12;
+    var svg = frame(el, W, H);
+    var max = maxOf(cfg.values);
+    var n = cfg.values.length;
+    var plotW = W - padL - 12, plotH = H - padT - padB;
+    var step = plotW / n, bw = Math.min(step * 0.62, 64);
+    var color = cfg.color || accent();
+    var f = coerceFormat(cfg.format);
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + plotH - (plotH * g) / 4;
+      svg.appendChild(svgEl("line", { x1: padL, y1: gy, x2: W - 12, y2: gy, stroke: "currentColor", "stroke-opacity": 0.08 }));
+      var lbl = svgEl("text", { x: padL - 8, y: gy + 4, "text-anchor": "end", "font-size": 10, fill: mutedColor() });
+      lbl.textContent = axisFmt((max * g) / 4);
+      svg.appendChild(lbl);
+    }
+    cfg.values.forEach(function (v, i) {
+      var bh = Math.max(0, (v / max) * plotH);
+      var x = padL + i * step + (step - bw) / 2;
+      var y = padT + plotH - bh;
+      var r = svgEl("rect", { x: x, y: y, width: bw, height: bh, rx: 4, fill: color });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + f(v);
+      r.appendChild(t);
+      svg.appendChild(r);
+      var tx = svgEl("text", { x: x + bw / 2, y: H - 10, "text-anchor": "middle", "font-size": 11, fill: mutedColor() });
+      tx.textContent = cfg.labels[i];
+      svg.appendChild(tx);
+    });
+  }
+
+  // line(el, {labels:[], values:[], color?, format?}) — single-series line.
+  function line(el, cfg) {
+    var W = 640, H = 280, padL = 46, padB = 30, padT = 12;
+    var svg = frame(el, W, H);
+    var max = maxOf(cfg.values);
+    var n = cfg.values.length;
+    var plotW = W - padL - 16, plotH = H - padT - padB;
+    var color = cfg.color || accent();
+    var f = coerceFormat(cfg.format);
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + plotH - (plotH * g) / 4;
+      svg.appendChild(svgEl("line", { x1: padL, y1: gy, x2: W - 16, y2: gy, stroke: "currentColor", "stroke-opacity": 0.08 }));
+      var lbl = svgEl("text", { x: padL - 8, y: gy + 4, "text-anchor": "end", "font-size": 10, fill: mutedColor() });
+      lbl.textContent = axisFmt((max * g) / 4);
+      svg.appendChild(lbl);
+    }
+    var pts = cfg.values.map(function (v, i) {
+      var x = padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1));
+      var y = padT + plotH - (v / max) * plotH;
+      return [x, y];
+    });
+    var d = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+    svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+    pts.forEach(function (p, i) {
+      var c = svgEl("circle", { cx: p[0], cy: p[1], r: 3.5, fill: color });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + f(cfg.values[i]);
+      c.appendChild(t);
+      svg.appendChild(c);
+      var tx = svgEl("text", { x: p[0], y: H - 10, "text-anchor": "middle", "font-size": 11, fill: mutedColor() });
+      tx.textContent = cfg.labels[i];
+      svg.appendChild(tx);
+    });
+  }
+
+  // donut(el, {labels:[], values:[], colors?}) — donut with center total.
+  function donut(el, cfg) {
+    var W = 320, H = 280, cx = W / 2, cy = H / 2, R = 92, r = 58;
+    var svg = frame(el, W, H);
+    var total = cfg.values.reduce(function (a, b) { return a + b; }, 0) || 1;
+    var palette = cfg.colors || [accent(), "#1baf7a", "#eda100", "#e34948", "#4a3aa7", "#e87ba4"];
+    var a0 = -Math.PI / 2;
+    cfg.values.forEach(function (v, i) {
+      var a1 = a0 + (v / total) * Math.PI * 2;
+      var large = a1 - a0 > Math.PI ? 1 : 0;
+      var p = ["M", cx + R * Math.cos(a0), cy + R * Math.sin(a0),
+        "A", R, R, 0, large, 1, cx + R * Math.cos(a1), cy + R * Math.sin(a1),
+        "L", cx + r * Math.cos(a1), cy + r * Math.sin(a1),
+        "A", r, r, 0, large, 0, cx + r * Math.cos(a0), cy + r * Math.sin(a0), "Z"].join(" ");
+      var path = svgEl("path", { d: p, fill: palette[i % palette.length] });
+      var t = svgEl("title", {});
+      t.textContent = cfg.labels[i] + ": " + fmt.num(v) + " (" + fmt.pct(v / total) + ")";
+      path.appendChild(t);
+      svg.appendChild(path);
+      a0 = a1;
+    });
+    var center = svgEl("text", { x: cx, y: cy + 5, "text-anchor": "middle", "font-size": 20, "font-weight": 650, fill: "currentColor" });
+    center.textContent = fmt.num(total);
+    svg.appendChild(center);
+  }
+
+  window.skipShell = { fmt: fmt };
+  window.skipChart = { bar: bar, line: line, donut: donut };
+})();
+
+</script>
+</body>
+</html>
